@@ -1,0 +1,9 @@
+{
+  "chainId": 80002,
+  "network": "polygonAmoy",
+  "anchor": "0xC603ac85b4dd9a1c8cf528A72268E510605ae1C0",
+  "passport": "0x3CFFf0777CcD9B35e2A7866Ee7B352c144294B6d",
+  "marketplace": "0xCD6947b89A3625A4c7FaED264C8E5358452E071B",
+  "deployedAt": "2025-11-28T05:50:25.948Z",
+  "deployer": "0x6b3a924379B9408D8110f10F084ca809863B378A"
+}

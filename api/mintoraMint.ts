@@ -8,7 +8,6 @@ import {
 
 const passportAddress = getContractAddress("MINTORA_PASSPORT_ADDRESS");
 const rpcUrl = getRpcUrl();
-const privateKey = getPrivateKey();
 
 function getProvider() {
   return new ethers.JsonRpcProvider(rpcUrl);
@@ -16,6 +15,7 @@ function getProvider() {
 
 function getWallet() {
   const provider = getProvider();
+  const privateKey = getPrivateKey();
   return new ethers.Wallet(privateKey, provider);
 }
 

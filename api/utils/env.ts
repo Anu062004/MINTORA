@@ -1,3 +1,13 @@
+import deployments from "../../deployments/polygonAmoy.json";
+
+const DEFAULT_RPC = "https://rpc-amoy.polygon.technology";
+
+const FALLBACK_ADDRESS_MAP: Record<string, string | undefined> = {
+  MINTORA_ANCHOR_ADDRESS: deployments?.anchor,
+  MINTORA_PASSPORT_ADDRESS: deployments?.passport,
+  MINTORA_MARKETPLACE_ADDRESS: deployments?.marketplace,
+};
+
 const formatMissing = (keys: string[]) =>
   `Missing required environment variable. Set one of: ${keys.join(", ")}`;
 
@@ -12,7 +22,15 @@ export function requireEnv(keys: string[]): string {
 }
 
 export function getRpcUrl(): string {
-  return requireEnv(["RPC_URL", "NEXT_PUBLIC_EVM_RPC", "NEXT_PUBLIC_EVM_RPC_URL"]);
+  try {
+    return requireEnv([
+      "RPC_URL",
+      "NEXT_PUBLIC_EVM_RPC",
+      "NEXT_PUBLIC_EVM_RPC_URL",
+    ]);
+  } catch {
+    return DEFAULT_RPC;
+  }
 }
 
 export function getPrivateKey(): string {
@@ -31,7 +49,18 @@ export function getContractAddress(envKey: string): string {
     candidates.add(`NEXT_PUBLIC_${envKey}`);
   }
 
-  return requireEnv(Array.from(candidates));
+  try {
+    return requireEnv(Array.from(candidates));
+  } catch (error) {
+    const normalizedKey = envKey.endsWith("_ADDRESS")
+      ? envKey
+      : `${envKey}_ADDRESS`;
+    const fallback = FALLBACK_ADDRESS_MAP[normalizedKey];
+    if (fallback) {
+      return fallback;
+    }
+    throw error;
+  }
 }
 
 
