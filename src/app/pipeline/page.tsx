@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useChainId, useSwitchChain, useWriteContract } from "wagmi";
 import { Upload, FileCheck, Link2, Brain, Sparkles, CheckCircle, Loader2, AlertCircle, ArrowRight, Wallet } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { waitForTransactionReceipt } from "wagmi/actions";
@@ -38,7 +38,9 @@ const stepConfig = [
 
 export default function PipelinePage() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const { writeContractAsync } = useWriteContract();
+  const { switchChainAsync, isPending: isSwitchingChain } = useSwitchChain();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +97,16 @@ export default function PipelinePage() {
     setError(null);
 
     try {
+      if (chainId !== CHAIN_ID) {
+        try {
+          await switchChainAsync({ chainId: CHAIN_ID });
+        } catch (switchError) {
+          setError("Please switch your wallet to Polygon Amoy to continue.");
+          setLoading(false);
+          return;
+        }
+      }
+
       const registrationFee = parseEther("0.1"); // 0.1 MATIC
       
       const hash = await writeContractAsync({
@@ -176,6 +188,8 @@ export default function PipelinePage() {
     setState((s) => ({ ...s, tokenId: mockTokenId }));
     setLoading(false);
   };
+
+  const isWrongNetwork = isConnected && chainId !== CHAIN_ID;
 
   if (!isConnected) {
     return (
@@ -355,6 +369,12 @@ export default function PipelinePage() {
                   <p className="text-xs text-slate-500 mt-1">Required to register your research on-chain</p>
                 </div>
 
+                {isWrongNetwork && (
+                  <div className="glass-card p-4 mb-4 border border-rose-500/30 bg-rose-500/5 text-sm text-rose-300 max-w-lg mx-auto">
+                    Switch your wallet to <strong>Polygon Amoy</strong> before anchoring.
+                  </div>
+                )}
+
                 {error && (
                   <div className="glass-card p-4 mb-6 border-rose-500/30 bg-rose-500/5 max-w-lg mx-auto">
                     <div className="flex items-center gap-2 text-rose-400">
@@ -366,7 +386,7 @@ export default function PipelinePage() {
 
                 <button
                   onClick={anchorOnChain}
-                  disabled={loading || isConfirming}
+                  disabled={loading || isConfirming || isSwitchingChain}
                   className="btn-primary inline-flex items-center gap-2"
                 >
                   {loading || isConfirming ? (
