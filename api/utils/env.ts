@@ -1,6 +1,7 @@
 import deployments from "../../deployments/polygonAmoy.json";
 
-const DEFAULT_RPC = "https://rpc-amoy.polygon.technology";
+const DEFAULT_RPC =
+  "https://polygon-amoy.infura.io/v3/7b9e65fcd7384c9d9742714799f14f18";
 
 const FALLBACK_ADDRESS_MAP: Record<string, string | undefined> = {
   MINTORA_ANCHOR_ADDRESS: deployments?.anchor,

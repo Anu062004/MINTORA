@@ -49,8 +49,8 @@ npm run dev
 Use `env.example` as the template for both local development and Vercel. Copy it to `.env` locally and configure the same keys in your Vercel project settings.
 
 ```
-RPC_URL=https://rpc-amoy.polygon.technology
-NEXT_PUBLIC_EVM_RPC=https://rpc-amoy.polygon.technology
+RPC_URL=https://polygon-amoy.infura.io/v3/7b9e65fcd7384c9d9742714799f14f18
+NEXT_PUBLIC_EVM_RPC=https://polygon-amoy.infura.io/v3/7b9e65fcd7384c9d9742714799f14f18
 PRIVATE_KEY=<deployer-wallet-key>
 MINTORA_ANCHOR_ADDRESS=<deployed-address>
 MINTORA_PASSPORT_ADDRESS=<deployed-address>

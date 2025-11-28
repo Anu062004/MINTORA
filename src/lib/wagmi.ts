@@ -4,7 +4,8 @@ import { injected, walletConnect } from "wagmi/connectors";
 import deployments from "../../deployments/polygonAmoy.json";
 
 const rpcUrl =
-  process.env.NEXT_PUBLIC_EVM_RPC || "https://rpc-amoy.polygon.technology";
+  process.env.NEXT_PUBLIC_EVM_RPC ||
+  "https://polygon-amoy.infura.io/v3/7b9e65fcd7384c9d9742714799f14f18";
 
 export const config = createConfig({
   chains: [polygonAmoy],
