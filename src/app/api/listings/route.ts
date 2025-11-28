@@ -4,11 +4,19 @@ import {
   MINTORA_MARKETPLACE_ABI,
   MINTORA_PASSPORT_ABI,
 } from "@/lib/contracts";
+import deployments from "../../../../deployments/polygonAmoy.json";
 
 export const dynamic = 'force-dynamic';
 
 const DEFAULT_IPFS_GATEWAY =
   process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs/";
+const DEFAULT_RPC = "https://rpc-amoy.polygon.technology";
+
+const FALLBACK_ADDRESS_MAP: Record<string, string | undefined> = {
+  MINTORA_ANCHOR_ADDRESS: deployments?.anchor,
+  MINTORA_PASSPORT_ADDRESS: deployments?.passport,
+  MINTORA_MARKETPLACE_ADDRESS: deployments?.marketplace,
+};
 
 type MetadataAttribute = {
   trait_type?: string;
@@ -40,12 +48,8 @@ const getProvider = () => {
   const rpc =
     process.env.RPC_URL ||
     process.env.NEXT_PUBLIC_EVM_RPC ||
-    process.env.NEXT_PUBLIC_EVM_RPC_URL;
-  if (!rpc) {
-    throw new Error(
-      "RPC_URL (or NEXT_PUBLIC_EVM_RPC) environment variable is not set"
-    );
-  }
+    process.env.NEXT_PUBLIC_EVM_RPC_URL ||
+    DEFAULT_RPC;
   return new ethers.JsonRpcProvider(rpc);
 };
 
@@ -69,6 +73,14 @@ const resolveAddress = (envKey: string, ...extraKeys: string[]) => {
     if (value && ethers.isAddress(value)) {
       return value;
     }
+  }
+
+  const normalizedKey = envKey.endsWith("_ADDRESS")
+    ? envKey
+    : `${envKey}_ADDRESS`;
+  const fallback = FALLBACK_ADDRESS_MAP[normalizedKey];
+  if (fallback && ethers.isAddress(fallback)) {
+    return fallback;
   }
 
   throw new Error(
