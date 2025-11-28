@@ -46,6 +46,8 @@ npm run dev
 
 ## Environment Variables
 
+Use `env.example` as the template for both local development and Vercel. Copy it to `.env` locally and configure the same keys in your Vercel project settings.
+
 ```
 RPC_URL=https://rpc-amoy.polygon.technology
 NEXT_PUBLIC_EVM_RPC=https://rpc-amoy.polygon.technology
@@ -53,7 +55,16 @@ PRIVATE_KEY=<deployer-wallet-key>
 NEXT_PUBLIC_MINTORA_ANCHOR=<deployed-address>
 NEXT_PUBLIC_MINTORA_PASSPORT=<deployed-address>
 NEXT_PUBLIC_MINTORA_MARKETPLACE=<deployed-address>
+NEXT_PUBLIC_WC_PROJECT_ID=<walletconnect-project-id>
+NEXT_PUBLIC_IPFS_GATEWAY=https://gateway.pinata.cloud/ipfs/
 ```
+
+## Deploying to Vercel
+
+1. Push this repository to GitHub and import it inside Vercel.
+2. In Vercel → Project → Settings → Environment Variables, add every key from `env.example` (addresses should match your deployed contracts).
+3. Build command: `npm run build`, Install command: `npm install`, Output: default (`.vercel/output` managed by Next.js).
+4. Trigger a deployment; Vercel will run `next build` and serve the app globally, including the `/api/listings` Route Handler.
 
 ## Pages
 

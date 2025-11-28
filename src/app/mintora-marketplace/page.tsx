@@ -248,9 +248,8 @@ export default function MarketplacePage() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
           <AnimatePresence>
-            {(loadingListings ? Array.from({ length: 3 }) : filteredListings).map(
-              (listing, i) =>
-                loadingListings ? (
+            {loadingListings
+              ? Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={`skeleton-${i}`}
                     className="glass-card p-5 animate-pulse space-y-4"
@@ -259,7 +258,8 @@ export default function MarketplacePage() {
                     <div className="h-5 bg-slate-800/60 rounded-lg" />
                     <div className="h-5 bg-slate-800/60 rounded-lg w-1/2" />
                   </div>
-                ) : listing ? (
+                ))
+              : filteredListings.map((listing, i) => (
                   <motion.div
                     key={listing.listingId}
                     initial={{ opacity: 0, y: 20 }}
@@ -352,8 +352,7 @@ export default function MarketplacePage() {
                       </div>
                     </div>
                   </motion.div>
-                ) : null
-            )}
+                ))}
           </AnimatePresence>
         </div>
 

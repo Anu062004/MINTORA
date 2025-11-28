@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { ethers } from "ethers";
-import fs from "fs";
-import path from "path";
 import {
   MINTORA_MARKETPLACE_ABI,
   MINTORA_PASSPORT_ABI,
@@ -38,18 +36,6 @@ const extractAttribute = (
   )?.value;
 };
 
-const loadDeployments = () => {
-  const deploymentsPath = path.join(
-    process.cwd(),
-    "deployments",
-    "polygonAmoy.json"
-  );
-  if (!fs.existsSync(deploymentsPath)) {
-    throw new Error("deployments/polygonAmoy.json not found");
-  }
-  return JSON.parse(fs.readFileSync(deploymentsPath, "utf-8"));
-};
-
 const getProvider = () => {
   const rpc =
     process.env.RPC_URL ||
@@ -63,35 +49,30 @@ const getProvider = () => {
   return new ethers.JsonRpcProvider(rpc);
 };
 
-const resolveAddress = (
-  envKey: string,
-  deployments: Record<string, string>,
-  deploymentKey: string
-) => {
-  const possibleKeys = [envKey];
-  if (envKey.endsWith("_ADDRESS")) {
-    const shortKey = envKey.replace(/_ADDRESS$/, "");
-    possibleKeys.push(shortKey);
-    possibleKeys.push(`NEXT_PUBLIC_${shortKey}`);
-    possibleKeys.push(`NEXT_PUBLIC_${envKey}`);
-  } else {
-    possibleKeys.push(`NEXT_PUBLIC_${envKey}`);
-  }
+const resolveAddress = (envKey: string, ...extraKeys: string[]) => {
+  const possibleKeys = new Set<string>([
+    envKey,
+    `NEXT_PUBLIC_${envKey}`,
+    ...extraKeys,
+  ]);
 
-  for (const key of possibleKeys) {
+  const expandedKeys = Array.from(possibleKeys).flatMap((key) => {
+    if (key.endsWith("_ADDRESS")) {
+      const shortKey = key.replace(/_ADDRESS$/, "");
+      return [key, shortKey, `NEXT_PUBLIC_${shortKey}`, `NEXT_PUBLIC_${key}`];
+    }
+    return [key];
+  });
+
+  for (const key of expandedKeys) {
     const value = process.env[key as keyof NodeJS.ProcessEnv];
     if (value && ethers.isAddress(value)) {
       return value;
     }
   }
 
-  const fromFile = deployments?.[deploymentKey];
-  if (fromFile && ethers.isAddress(fromFile)) {
-    return fromFile;
-  }
-
   throw new Error(
-    `${envKey} is not configured. Add ${envKey}=<address> (or NEXT_PUBLIC variant) to .env or update deployments/polygonAmoy.json`
+    `${envKey} is not configured. Add ${envKey}=<address> (or NEXT_PUBLIC variant) to your environment variables.`
   );
 };
 
@@ -136,16 +117,15 @@ export async function GET() {
       throw new Error(`RPC provider not responding: ${error?.message}`);
     }
     
-    const deployments = loadDeployments();
     const marketplaceAddress = resolveAddress(
       "MINTORA_MARKETPLACE_ADDRESS",
-      deployments,
-      "marketplace"
+      "MINTORA_MARKETPLACE",
+      "NEXT_PUBLIC_MINTORA_MARKETPLACE"
     );
     const passportAddress = resolveAddress(
       "MINTORA_PASSPORT_ADDRESS",
-      deployments,
-      "passport"
+      "MINTORA_PASSPORT",
+      "NEXT_PUBLIC_MINTORA_PASSPORT"
     );
     
     if (!ethers.isAddress(marketplaceAddress)) {
