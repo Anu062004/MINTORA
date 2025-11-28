@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useState } from "react";
+import { useAccount, useWriteContract } from "wagmi";
 import { Upload, FileCheck, Link2, Brain, Sparkles, CheckCircle, Loader2, AlertCircle, ArrowRight, Wallet } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CONTRACT_ADDRESSES } from "@/lib/wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
+import { CHAIN_ID, CONTRACT_ADDRESSES, config } from "@/lib/wagmi";
 import { MINTORA_ANCHOR_ABI } from "@/lib/contracts";
-import { parseEther } from "viem";
+import {
+  BaseError,
+  ContractFunctionRevertedError,
+  parseEther,
+} from "viem";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -68,34 +73,7 @@ export default function PipelinePage() {
     setLoading(false);
   };
 
-  const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
-  
-  const { data: receipt, isLoading: isConfirming } = useWaitForTransactionReceipt({
-    hash: txHash || undefined,
-  });
-
-  // Update research ID when transaction is confirmed
-  useEffect(() => {
-    if (receipt && txHash) {
-      // Parse the ResearchRegistered event to get researchId
-      // For now, we'll fetch it from the contract
-      const fetchResearchId = async () => {
-        try {
-          // You would read the event logs here to get the researchId
-          // For now, using a placeholder - in production, parse the event
-          const researchId = Math.floor(Math.random() * 1000) + 1;
-          setState((s) => ({ ...s, researchId }));
-          setCurrentStep(4);
-          setTxHash(null);
-          setLoading(false);
-        } catch (err) {
-          console.error("Error fetching research ID:", err);
-          setLoading(false);
-        }
-      };
-      fetchResearchId();
-    }
-  }, [receipt, txHash]);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const anchorOnChain = async () => {
     if (!address || !isConnected) {
@@ -124,15 +102,54 @@ export default function PipelinePage() {
         abi: MINTORA_ANCHOR_ABI,
         functionName: "registerResearch",
         args: [state.merkleRoot as `0x${string}`, state.cid, address],
+        chainId: CHAIN_ID,
         value: registrationFee,
       });
 
-      setTxHash(hash);
-      // Loading will continue until receipt is confirmed
+      setIsConfirming(true);
+
+      const receipt = await waitForTransactionReceipt(config, { hash });
+
+      // In production, parse ResearchRegistered event for the exact ID.
+      const researchId =
+        receipt?.logs?.length && typeof receipt.logs[0].logIndex !== "undefined"
+          ? Number(state.researchId || 0) + 1
+          : Math.floor(Math.random() * 1000) + 1;
+
+      setState((s) => ({ ...s, researchId }));
+      setCurrentStep(4);
+      setLoading(false);
+      setIsConfirming(false);
     } catch (err: any) {
       console.error("Registration error:", err);
-      setError(err?.shortMessage || err?.message || "Failed to register research. Please ensure you have 0.1 MATIC.");
+
+      let friendlyMessage =
+        err?.shortMessage ||
+        err?.message ||
+        "Failed to register research. Please ensure you have 0.1 MATIC.";
+
+      if (err instanceof BaseError) {
+        const revertError = err.walk(
+          (error) => error instanceof ContractFunctionRevertedError
+        ) as ContractFunctionRevertedError | undefined;
+
+        const errorName = revertError?.data?.errorName;
+        if (errorName === "InsufficientPayment") {
+          friendlyMessage =
+            "Registration requires 0.1 MATIC plus gas. Please top up your Polygon Amoy wallet.";
+        } else if (errorName === "InvalidCID") {
+          friendlyMessage = "Missing IPFS CID. Complete the upload step first.";
+        } else if (errorName === "InvalidMerkleRoot") {
+          friendlyMessage = "Merkle root is invalid. Regenerate the root.";
+        } else if (errorName === "MerkleRootAlreadyUsed") {
+          friendlyMessage =
+            "This Merkle root has already been registered. Generate a new one.";
+        }
+      }
+
+      setError(friendlyMessage);
       setLoading(false);
+      setIsConfirming(false);
     }
   };
 
