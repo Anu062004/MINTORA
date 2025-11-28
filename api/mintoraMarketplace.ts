@@ -1,25 +1,17 @@
 import { ethers } from "ethers";
-import deployments from "../deployments/polygonAmoy.json";
+import { MINTORA_MARKETPLACE_ABI } from "../src/abis";
+import { getContractAddress, getRpcUrl } from "./utils/env";
 
-const MINTORA_MARKETPLACE_ABI = [
-  "function listNFT(address nftContract, uint256 tokenId, uint256 price) external returns (uint256)",
-  "function buyNFT(uint256 listingId) external payable",
-  "function cancelListing(uint256 listingId) external",
-  "function updatePrice(uint256 listingId, uint256 newPrice) external",
-  "function getActiveListings() external view returns (tuple(address seller, address nftContract, uint256 tokenId, uint256 price, bool active)[])",
-  "function listings(uint256 listingId) external view returns (address seller, address nftContract, uint256 tokenId, uint256 price, bool active)",
-  "function listingCount() external view returns (uint256)",
-  "event Listed(uint256 indexed listingId, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 price)",
-  "event Sale(uint256 indexed listingId, address indexed buyer, address indexed seller, uint256 price)",
-];
+const marketplaceAddress = getContractAddress("MINTORA_MARKETPLACE_ADDRESS");
+const rpcUrl = getRpcUrl();
 
 function getProvider() {
-  return new ethers.JsonRpcProvider(process.env.RPC_URL);
+  return new ethers.JsonRpcProvider(rpcUrl);
 }
 
 function getMarketplaceContract(signerOrProvider?: ethers.Signer | ethers.Provider) {
   return new ethers.Contract(
-    deployments.marketplace,
+    marketplaceAddress,
     MINTORA_MARKETPLACE_ABI,
     signerOrProvider || getProvider()
   );

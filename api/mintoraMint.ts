@@ -1,29 +1,27 @@
 import { ethers } from "ethers";
-import deployments from "../deployments/polygonAmoy.json";
+import { MINTORA_PASSPORT_ABI } from "../src/abis";
+import {
+  getContractAddress,
+  getPrivateKey,
+  getRpcUrl,
+} from "./utils/env";
 
-const MINTORA_PASSPORT_ABI = [
-  "function mintResearchPassport(address to, uint256 researchId, string uri) external returns (uint256)",
-  "function updatePassportData(uint256 tokenId, uint256 qualityScore, bool isVerified) external",
-  "function getOwnedTokens(address owner) external view returns (uint256[])",
-  "function passportData(uint256 tokenId) external view returns (uint256 researchId, uint256 mintTimestamp, uint256 qualityScore, bool isVerified)",
-  "function tokenURI(uint256 tokenId) external view returns (string)",
-  "function ownerOf(uint256 tokenId) external view returns (address)",
-  "function balanceOf(address owner) external view returns (uint256)",
-  "event PassportMinted(uint256 indexed tokenId, address indexed owner, uint256 indexed researchId, string tokenURI)",
-];
+const passportAddress = getContractAddress("MINTORA_PASSPORT_ADDRESS");
+const rpcUrl = getRpcUrl();
+const privateKey = getPrivateKey();
 
 function getProvider() {
-  return new ethers.JsonRpcProvider(process.env.RPC_URL);
+  return new ethers.JsonRpcProvider(rpcUrl);
 }
 
 function getWallet() {
   const provider = getProvider();
-  return new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+  return new ethers.Wallet(privateKey, provider);
 }
 
 function getPassportContract(signerOrProvider?: ethers.Signer | ethers.Provider) {
   return new ethers.Contract(
-    deployments.passport,
+    passportAddress,
     MINTORA_PASSPORT_ABI,
     signerOrProvider || getProvider()
   );

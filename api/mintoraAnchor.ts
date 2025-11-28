@@ -1,29 +1,27 @@
 import { ethers } from "ethers";
-import deployments from "../deployments/polygonAmoy.json";
+import { MINTORA_ANCHOR_ABI } from "../src/abis";
+import {
+  getContractAddress,
+  getPrivateKey,
+  getRpcUrl,
+} from "./utils/env";
 
-const MINTORA_ANCHOR_ABI = [
-  "function registerResearch(bytes32 merkleRoot, string cid, address researcher) external returns (uint256)",
-  "function attachAnalysis(uint256 researchId, bytes32 analysisHash, uint256 qualityScore) external",
-  "function getResearch(uint256 researchId) external view returns (tuple(bytes32 merkleRoot, string cid, address researcher, uint256 timestamp, bool verified, bytes32 analysisHash, uint256 qualityScore))",
-  "function getResearcherIds(address researcher) external view returns (uint256[])",
-  "function verifyMerkleProof(uint256 researchId, bytes32[] proof, bytes32 leaf) external view returns (bool)",
-  "function researchCount() external view returns (uint256)",
-  "event ResearchRegistered(uint256 indexed researchId, bytes32 merkleRoot, string cid, address indexed researcher, uint256 timestamp)",
-  "event AnalysisAttached(uint256 indexed researchId, bytes32 analysisHash, uint256 qualityScore)",
-];
+const anchorAddress = getContractAddress("MINTORA_ANCHOR_ADDRESS");
+const rpcUrl = getRpcUrl();
+const privateKey = getPrivateKey();
 
 function getProvider() {
-  return new ethers.JsonRpcProvider(process.env.RPC_URL);
+  return new ethers.JsonRpcProvider(rpcUrl);
 }
 
 function getWallet() {
   const provider = getProvider();
-  return new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+  return new ethers.Wallet(privateKey, provider);
 }
 
 function getAnchorContract(signerOrProvider?: ethers.Signer | ethers.Provider) {
   return new ethers.Contract(
-    deployments.anchor,
+    anchorAddress,
     MINTORA_ANCHOR_ABI,
     signerOrProvider || getProvider()
   );

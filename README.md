@@ -52,6 +52,9 @@ Use `env.example` as the template for both local development and Vercel. Copy it
 RPC_URL=https://rpc-amoy.polygon.technology
 NEXT_PUBLIC_EVM_RPC=https://rpc-amoy.polygon.technology
 PRIVATE_KEY=<deployer-wallet-key>
+MINTORA_ANCHOR_ADDRESS=<deployed-address>
+MINTORA_PASSPORT_ADDRESS=<deployed-address>
+MINTORA_MARKETPLACE_ADDRESS=<deployed-address>
 NEXT_PUBLIC_MINTORA_ANCHOR=<deployed-address>
 NEXT_PUBLIC_MINTORA_PASSPORT=<deployed-address>
 NEXT_PUBLIC_MINTORA_MARKETPLACE=<deployed-address>

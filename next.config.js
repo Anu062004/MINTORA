@@ -12,6 +12,18 @@ const nextConfig = {
         "node_modules",
         "ws"
       ),
+    "@react-native-async-storage/async-storage": path.resolve(
+      __dirname,
+      "src",
+      "lib",
+      "asyncStorageShim.js"
+    ),
+    "pino-pretty": path.resolve(
+      __dirname,
+      "src",
+      "lib",
+      "pinoPrettyStub.js"
+    ),
     };
     return config;
   },
